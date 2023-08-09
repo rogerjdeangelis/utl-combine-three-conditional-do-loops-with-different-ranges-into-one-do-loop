@@ -3,8 +3,8 @@
 Combine three conditional do loops with different ranges into one do loop
 
 github
-https://tinyurl.com/2a3nphnf
-https://github.com/rogerjdeangelis/utl-combine-three-conditioanl-do-loops-with-different-ranges-into-one-do-loop
+https://tinyurl.com/mr24f9ea
+https://github.com/rogerjdeangelis/utl-combine-three-conditional-do-loops-with-different-ranges-into-one-do-loop
 
 I think this is what you are asking?
 
@@ -12,6 +12,7 @@ I think this is what you are asking?
 
        1. wps array do_over
        2, wps datastep arrays
+       2, wps marks sentinel
 
 macro iotan on the end of message
 
@@ -227,7 +228,7 @@ run;quit;
 /*   11     35     B      G2                                                                                              */
 /*   12     40     B      G2                                                                                              */
 /*   13     45     B      G2                                                                                              */
-/*   14     50     B      G2                                                                                              */
+/*   14     50     B      G2                                                                                               */
 /*   15     55     B      G2                                                                                              */
 /*   16     60     B      G2                                                                                              */
 /*   17     65     B      G2                                                                                              */
@@ -236,42 +237,37 @@ run;quit;
 /*   20     80     B      G2                                                                                              */
 /*   21     85     B      G2                                                                                              */
 /*   22     90     B      G2                                                                                              */
-/*   23     95     B      G2                                                                                              */
+/*   23     95     B      G2                                                                                                */
 /*   24    100     B      G2                                                                                              */
 /*                                                                                                                        */
 /**************************************************************************************************************************/
-
-/*                                _       _
- _ __ ___   __ _  ___ _ __ ___   (_) ___ | |_ __ _ _ __
-| `_ ` _ \ / _` |/ __| `__/ _ \  | |/ _ \| __/ _` | `_ \
-| | | | | | (_| | (__| | | (_) | | | (_) | || (_| | | | |
-|_| |_| |_|\__,_|\___|_|  \___/  |_|\___/ \__\__,_|_| |_|
-
+/*                                         _                        _   _            _
+__      ___ __  ___   _ __ ___   __ _ _ __| | _____  ___  ___ _ __ | |_(_)_ __   ___| |
+\ \ /\ / / `_ \/ __| | `_ ` _ \ / _` | `__| |/ / __|/ __|/ _ \ `_ \| __| | `_ \ / _ \ |
+ \ V  V /| |_) \__ \ | | | | | | (_| | |  |   <\__ \\__ \  __/ | | | |_| | | | |  __/ |
+  \_/\_/ | .__/|___/ |_| |_| |_|\__,_|_|  |_|\_\___/|___/\___|_| |_|\__|_|_| |_|\___|_|
+         |_|
 */
 
-%macro iotan(too,from=1,by=1,delim=)/des="create a delimited list of numbers";
 
-  %local idx res;
+/*----  THE -1 INDEX IS A SENTINEL AS FIRST PUBLISHED BY MARK keintz     ----*/
 
-  %do idx=&from %to &too %by &by;
+%let _ranges= 1 to 5,-1,10 to 100 by 5;
+%let _parts='A','B';
+%let _dim=%eval(%length("&_parts")/4);
+%put &=_dim;
 
-   %if &idx ^= &too %then %do;
-        %let res=&res &idx &delim;
-   %end;
-   %else %do;
-       %let res=&res &idx;
-   %end;
+data want;
+  array ab(&_dim) $1 _temporary_ (&_parts);
+  do idx = &_ranges;
+    type   = ab[1];
+    if type="A" then y="G1";
+    else Y = "G2";
+    if idx  = -1 then ab[1]=ab[2];
+    else output;
+  end;
 
-  %end;
-
-   %if &delim = %then %do;
-      %sysfunc(compbl(&res))
-   %end;
-   %else %do;
-       %sysfunc(compress(&res))
-   %end;
-
-%mend iotan;
+run;quit;
 
 /*              _
   ___ _ __   __| |
